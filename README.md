@@ -99,9 +99,7 @@ contenedor pero probablemente no en la máquina.
 instancia (Ubuntu, forma ARM Ampere A1). Instala Docker y clona el repo en
 `/opt/ring-door` al primer arranque.
 
-**Como este repo es privado, ese `git clone` fallará sin credenciales.** Opciones:
-hacer el repo público (el token no está en él), añadir una deploy key a la VM, o
-simplemente clonar a mano por SSH tras el primer arranque. Después:
+Después basta con entrar una vez por SSH:
 
 ```bash
 cd /opt/ring-door/double-ring
