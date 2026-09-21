@@ -1,4 +1,7 @@
 #cloud-config
+# Pegar en "Mostrar opciones avanzadas" → "Cloud-init script" al crear la instancia.
+# Al primer arranque: instala Docker, clona el repo y deja todo listo para que
+# solo haya que pegar el token de Ring y levantar el contenedor.
 package_update: true
 packages:
   - git
@@ -6,4 +9,24 @@ runcmd:
   - curl -fsSL https://get.docker.com | sh
   - usermod -aG docker ubuntu
   - git clone https://github.com/recheitor/ring-door.git /opt/ring-door
-  - echo "Repo en /opt/ring-door/double-ring. Rellena .env y ejecuta 'docker compose up -d'."
+  - chown -R ubuntu:ubuntu /opt/ring-door
+  # Script de arranque: pide el token una vez y deja el worker corriendo
+  - |
+    cat > /usr/local/bin/ring-setup <<'SCRIPT'
+    #!/bin/bash
+    set -e
+    cd /opt/ring-door/double-ring
+    if [ ! -f .env ]; then
+      echo "Pega tu RING_REFRESH_TOKEN y pulsa Enter:"
+      read -r TOKEN
+      echo "RING_REFRESH_TOKEN=$TOKEN" > .env
+      chmod 600 .env
+      echo "Token guardado."
+    fi
+    sudo docker compose up -d --build
+    echo
+    echo "Listo. Logs en vivo (Ctrl-C para salir):"
+    sudo docker compose logs -f
+    SCRIPT
+  - chmod +x /usr/local/bin/ring-setup
+  - echo "VM lista. Conecta por SSH y ejecuta: ring-setup"

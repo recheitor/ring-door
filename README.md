@@ -5,6 +5,18 @@ Abrir el Ring Intercom desde el Apple Watch, y abrir al detectar dos timbrazos s
 Son dos componentes independientes. No comparten código ni estado: solo las mismas
 credenciales de Ring.
 
+## Estado
+
+| Componente | Estado |
+|---|---|
+| `watch-unlock` | **Desplegado** en https://watch-unlock.vercel.app/api/unlock — responde `200 {"ok":true}` |
+| El atajo del reloj | Pendiente: [guía](deploy/ATAJO-APPLE-WATCH.md) (2 min en el iPhone) |
+| `double-ring` | Código listo y probado contra Ring. Pendiente de máquina 24/7: [guía](deploy/ORACLE.md) |
+
+Queda por confirmar si el portal es de tipo *ring-to-open* (ver **Avisos** al final):
+el endpoint responde `ok`, pero falta comprobar en persona que la puerta abre sin que
+nadie haya llamado antes.
+
 | Carpeta | Qué hace | Dónde corre |
 |---|---|---|
 | `watch-unlock/` | Endpoint `POST /api/unlock` que abre la puerta | Vercel (serverless) |
@@ -65,12 +77,11 @@ curl -X POST https://<proyecto>.vercel.app/api/unlock \
 
 ### El atajo del Apple Watch
 
-No hace falta ninguna app ni Xcode. En el iPhone, app **Atajos** → **+** → nombra el
-atajo (p. ej. "Abrir portal") → acción **Obtener contenido de la URL**:
+**Guía completa: [`deploy/ATAJO-APPLE-WATCH.md`](deploy/ATAJO-APPLE-WATCH.md).**
 
-- URL: `https://<proyecto>.vercel.app/api/unlock`
-- **Mostrar más** → Método: **POST**
-- **Cabeceras** → clave `x-unlock-token`, valor el `UNLOCK_SECRET`
+No hace falta ninguna app ni Xcode. En el iPhone, app **Atajos** → **+** → acción
+**Obtener contenido de la URL**, con la URL del endpoint, **Mostrar más** → Método
+**POST**, y una cabecera `x-unlock-token` con el `UNLOCK_SECRET`.
 
 El secreto va en la cabecera, nunca en la URL. El atajo aparece solo en la app Atajos
 del Apple Watch; para un toque desde la esfera, añade la complicación "Atajos".
@@ -95,18 +106,12 @@ contenedor pero probablemente no en la máquina.
 
 ### Oracle Always Free
 
-`deploy/oracle-cloud-init.yaml` va en el campo *cloud-init / user data* al crear la
-instancia (Ubuntu, forma ARM Ampere A1). Instala Docker y clona el repo en
-`/opt/ring-door` al primer arranque.
+**Guía completa paso a paso: [`deploy/ORACLE.md`](deploy/ORACLE.md).**
 
-Después basta con entrar una vez por SSH:
-
-```bash
-cd /opt/ring-door/double-ring
-cp .env.example .env
-nano .env
-sudo docker compose up -d
-```
+En corto: creas una VM Ubuntu con forma ARM Ampere A1, pegas
+[`deploy/oracle-cloud-init.yaml`](deploy/oracle-cloud-init.yaml) en el campo
+*cloud-init script*, y al arrancar entras por SSH y ejecutas `ring-setup`. Ese comando
+pide el token, lo guarda y deja el contenedor corriendo.
 
 Oracle reclama instancias inactivas, pero esta no lo está: mantiene una conexión viva
 con Ring. No hace falta abrir ningún puerto de entrada.
