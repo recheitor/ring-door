@@ -1,0 +1,9 @@
+{
+  "name": "watch-unlock",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "ring-client-api": "^14.3.0"
+  }
+}

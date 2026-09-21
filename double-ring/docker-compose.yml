@@ -1,0 +1,9 @@
+services:
+  ring:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ring-data:/data   # persiste el token rotado
+volumes:
+  ring-data:
